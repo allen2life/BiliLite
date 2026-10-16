@@ -25,9 +25,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -1132,6 +1135,17 @@ private fun coverThumb(url: String, w: Int, h: Int): String {
     return "$base@${w}w_${h}h_1c.webp"
 }
 
+/**
+ * v0.5.1: 封面统一加载请求 —— 打开交叉淡入(crossfade)。
+ * 网络图从磁盘/内存解密出来的那一帧不再"突然跳出",滚动时观感更平滑。
+ * 尺寸缩放仍走 coverThumb,逻辑不变。
+ */
+@Composable
+private fun coverRequest(url: String, w: Int, h: Int): Any? {
+    val ctx = LocalContext.current
+    return remember(url, ctx) { ImageRequest.Builder(ctx).data(coverThumb(url, w, h)).crossfade(true).build() }
+}
+
 /** 规范化 bvid:接受 BV1xx 或用户只粘了后半段(如 Xa35Sjj),补全成 BV 开头 */
 private fun normalizeBvid(input: String): String {
     var s = input.trim()
@@ -1430,7 +1444,8 @@ private fun VideoCardVertical(v: Video, upName: String, onClick: () -> Unit, onT
         modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth()) {
             if (v.pic.isNotEmpty()) {
-                AsyncImage(model = coverThumb(v.pic, 672, 378), contentDescription = v.title,
+                AsyncImage(model = coverRequest(v.pic, 672, 378), contentDescription = v.title,
+                    placeholder = ColorPainter(C.line),
                     modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                         .background(C.line))
@@ -1469,7 +1484,8 @@ fun VideoRow(v: Video, upName: String = "", onClick: () -> Unit = {}, onToggleFa
         Row(Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             // 封面(16:9 缩略)
             if (v.pic.isNotEmpty()) {
-                AsyncImage(model = coverThumb(v.pic, 320, 180), contentDescription = v.title,
+                AsyncImage(model = coverRequest(v.pic, 320, 180), contentDescription = v.title,
+                    placeholder = ColorPainter(C.line),
                     modifier = Modifier.width(120.dp).height(68.dp)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp))
                         .background(C.line))
@@ -1940,7 +1956,8 @@ private fun HistoryScreen(vm: BiliViewModel, onBack: () -> Unit, onPlay: (Video,
                     onClick = { v?.let { onPlayWithCid(it, w.cid, w.secs, historyVideos) } }) {
                     Row(Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (v != null && v.pic.isNotEmpty()) {
-                            AsyncImage(model = coverThumb(v.pic, 320, 180), contentDescription = v.title,
+                            AsyncImage(model = coverRequest(v.pic, 320, 180), contentDescription = v.title,
+                                placeholder = ColorPainter(C.line),
                                 modifier = Modifier.width(120.dp).height(68.dp)
                                     .clip(RoundedCornerShape(6.dp)).background(C.line))
                             Spacer(Modifier.width(12.dp))

@@ -7,7 +7,11 @@ package com.bililite.data
 
 import androidx.room.*
 import androidx.room.migration.Migration
+import androidx.compose.runtime.Immutable
 
+// v0.5.1: @Immutable —— 这些数据类字段全部只读(含 List<String>,只读不改),
+// 告知 Compose 其稳定性,首页视频列表滚动时列表项可跳过重组(修复滚动卡顿)。
+@Immutable
 @Entity(tableName = "upmain")
 data class Up(
     @PrimaryKey val id: String,      // B站 mid
@@ -19,6 +23,7 @@ data class Up(
     val addedAt: Long = System.currentTimeMillis()
 )
 
+@Immutable
 @Entity(tableName = "video")
 data class Video(
     @PrimaryKey val id: Long,        // B站 aid(稳定唯一)
@@ -37,6 +42,7 @@ data class Video(
     val tags: List<String> = emptyList()
 )
 
+@Immutable
 @Entity(tableName = "watch")
 data class Watch(
     @PrimaryKey val videoId: Long,

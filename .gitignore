@@ -5,3 +5,8 @@ android/.gradle/
 android/local.properties
 *.apk
 .gradle/
+
+# 本地私货（不推送到远程）
+.agents/
+.codegraph/
+.toolchain/
